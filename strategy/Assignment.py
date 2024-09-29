@@ -5,15 +5,12 @@ def role_assignment(teammate_positions, formation_positions):
     # Output : Map from unum -> positions
     #-----------------------------------------------------------#
     
-    num_teammates = len(teammate_positions)
+    assert len(teammate_positions) == len(formation_positions), "Mismatch in num teammates and formation positions."
     
-    # Create a cost matrix based on Euclidean distances
-    cost_matrix = np.zeros((num_teammates, num_teammates))
-    for i in range(num_teammates):
-        for j in range(num_teammates):
-            cost_matrix[i, j] = np.linalg.norm(teammate_positions[i] - formation_positions[j])
-
-    # Apply the Hungarian algorithm
+    #construct cost matrix
+    cost_matrix = construct_cost_matrix(teammate_positions, formation_positions)
+    
+    # Apply cost assignment alg
     row_ind, col_ind = hungarian_algorithm(cost_matrix)
 
     # Example
@@ -24,15 +21,16 @@ def role_assignment(teammate_positions, formation_positions):
     return point_preferences
 
 def hungarian_algorithm(cost_matrix):
-    # subtract mins from rows
+    # Step 1: Subtract row minimums
     for i in range(len(cost_matrix)):
         cost_matrix[i] -= np.min(cost_matrix[i])
 
-    # Step 2: subtract mins from cols
+    # Step 2: Subtract column minimums
     for j in range(len(cost_matrix[0])):
         cost_matrix[:, j] -= np.min(cost_matrix[:, j])
 
-    # Step 3: Cover all zeros with min # of lines
+    # Step 3: Cover all zeros with minimum number of lines
+    iterations = 0
     while True:
         zero_matrix = cost_matrix == 0
         row_cover = [False] * len(cost_matrix)
@@ -43,7 +41,7 @@ def hungarian_algorithm(cost_matrix):
             if not any(zero_matrix[i]):
                 row_cover[i] = True
 
-        # Mark columns where zero is present in a covered row
+        # Mark columns where a zero is present in a covered row
         for j in range(len(cost_matrix[0])):
             for i in range(len(cost_matrix)):
                 if row_cover[i] and zero_matrix[i, j]:
@@ -54,8 +52,7 @@ def hungarian_algorithm(cost_matrix):
         if lines_count >= len(cost_matrix):
             break
 
-        # Step 4: Adjust matrix if the min # of covering lines < n
-        # Find the min value not covered by a line
+        # Step 4: Adjust the matrix if the minimum number of covering lines < n
         min_val = np.inf
         for i in range(len(cost_matrix)):
             for j in range(len(cost_matrix[0])):
@@ -70,7 +67,11 @@ def hungarian_algorithm(cost_matrix):
                 if row_cover[i] and col_cover[j]:
                     cost_matrix[i, j] += min_val
 
-    # Step 6: Find optimal assignment
+        iterations += 1
+        if iterations > 1000:  # safeguard
+            break
+
+    # Step 6: Find the optimal assignment
     row_ind, col_ind = [], []
     for i in range(len(cost_matrix)):
         for j in range(len(cost_matrix[0])):
@@ -79,6 +80,19 @@ def hungarian_algorithm(cost_matrix):
                 col_ind.append(j)
 
     return row_ind, col_ind
+
+def construct_cost_matrix(teammate_positions, formation_positions):
+    num_teammates = len(teammate_positions)
+    cost_matrix = np.zeros((num_teammates, num_teammates))
+    
+    # calcu euclidean dist btwn teammates and formation positions
+    for i in range(num_teammates):
+        for j in range(num_teammates):
+            cost_matrix[i, j] = np.linalg.norm(teammate_positions[i] - formation_positions[j])
+    
+    return cost_matrix
+
+
 
 def pass_reciever_selector(player_unum, teammate_positions, final_target):
     
