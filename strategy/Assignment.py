@@ -109,3 +109,18 @@ def pass_reciever_selector(player_unum, teammate_positions, final_target):
         target = final_target 
     
     return target
+
+
+## test
+teammate_positions = np.array([
+    [-13, 0], [-10, -2], [-11, 3], [-8, 0], [-3, 0],
+    [0, 1], [2, 0], [3, 3], [8, 0], [9, 1], [12, 0]
+])
+
+formation_positions = np.array([
+    [-13, 0], [-10, -2], [-11, 3], [-8, 0], [-3, 0],
+    [0, 1], [2, 0], [3, 3], [8, 0], [9, 1], [12, 0]
+])
+
+assignment = role_assignment(teammate_positions, formation_positions)
+print(assignment)
