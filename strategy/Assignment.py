@@ -21,15 +21,15 @@ def role_assignment(teammate_positions, formation_positions):
     return point_preferences
 
 def hungarian_algorithm(cost_matrix):
-    # Step 1: Subtract row minimums
+    # Step 1: Subtract row mins
     for i in range(len(cost_matrix)):
         cost_matrix[i] -= np.min(cost_matrix[i])
 
-    # Step 2: Subtract column minimums
+    # Step 2: Subtract col mins
     for j in range(len(cost_matrix[0])):
         cost_matrix[:, j] -= np.min(cost_matrix[:, j])
 
-    # Step 3: Cover all zeros with minimum number of lines
+    # Step 3: Cover all zeros with min # of lines
     iterations = 0
     while True:
         zero_matrix = cost_matrix == 0
@@ -41,18 +41,18 @@ def hungarian_algorithm(cost_matrix):
             if not any(zero_matrix[i]):
                 row_cover[i] = True
 
-        # Mark columns where a zero is present in a covered row
+        # Mark cols where zero is present in a covered row
         for j in range(len(cost_matrix[0])):
             for i in range(len(cost_matrix)):
                 if row_cover[i] and zero_matrix[i, j]:
                     col_cover[j] = True
 
-        # Count the number of lines (row/col covers)
+        # Count the # of lines (row/col covers)
         lines_count = sum(row_cover) + sum(col_cover)
         if lines_count >= len(cost_matrix):
             break
 
-        # Step 4: Adjust the matrix if the minimum number of covering lines < n
+        # Step 4: Adjust matrix if the min # of covering lines < n
         min_val = np.inf
         for i in range(len(cost_matrix)):
             for j in range(len(cost_matrix[0])):
@@ -68,10 +68,10 @@ def hungarian_algorithm(cost_matrix):
                     cost_matrix[i, j] += min_val
 
         iterations += 1
-        if iterations > 1000:  # safeguard
+        if iterations > 1000:  # inf loop safeguard
             break
 
-    # Step 6: Find the optimal assignment
+    # Step 6: Find optimal assignment
     row_ind, col_ind = [], []
     for i in range(len(cost_matrix)):
         for j in range(len(cost_matrix[0])):
@@ -85,7 +85,7 @@ def construct_cost_matrix(teammate_positions, formation_positions):
     num_teammates = len(teammate_positions)
     cost_matrix = np.zeros((num_teammates, num_teammates))
     
-    # calcu euclidean dist btwn teammates and formation positions
+    # calc euclidean dist btwn teammates and formation positions
     for i in range(num_teammates):
         for j in range(num_teammates):
             cost_matrix[i, j] = np.linalg.norm(teammate_positions[i] - formation_positions[j])
